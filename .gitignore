@@ -1,0 +1,12 @@
+node_modules
+.turbo
+.pnpm-store
+dist
+.next
+.env
+.env.local
+coverage
+playwright-report
+test-results
+postgres-data
+redis-data

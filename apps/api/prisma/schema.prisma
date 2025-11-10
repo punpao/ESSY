@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  buyer
+  seller
+  admin
+}
+
+enum KycLevel {
+  none
+  basic
+  full
+}
+
+enum KycStatus {
+  unverified
+  pending
+  verified
+}
+
+enum DealStatus {
+  PENDING
+  HOLD
+  SHIPPED
+  RELEASED
+  DISPUTE
+  REFUND
+}
+
+enum PaymentStatus {
+  INIT
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum DisputeStatus {
+  OPEN
+  NEED_MORE_INFO
+  RESOLVED_REFUND
+  RESOLVED_RELEASE
+}
+
+enum EvidenceKind {
+  image
+  chatlog
+  other
+}
+
+enum ReputationType {
+  positive
+  neutral
+  negative
+}
+
+model User {
+  id           String      @id @default(uuid())
+  role         UserRole
+  lineSub      String?     @unique
+  email        String      @unique
+  phone        String?
+  kycLevel     KycLevel    @default(none)
+  displayName  String
+  createdAt    DateTime    @default(now())
+  sellerProfile SellerProfile?
+  dealsSold    Deal[]      @relation("SellerDeals")
+  dealsBought  Deal[]      @relation("BuyerDeals")
+  disputes     Dispute[]   @relation("BuyerDisputes")
+  evidences    Evidence[]  @relation("EvidenceUploader")
+}
+
+model SellerProfile {
+  id              String        @id @default(uuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id])
+  verified        Boolean       @default(false)
+  promptpayId     String
+  promptpayName   String
+  reputationScore Float         @default(0)
+  kycStatus       KycStatus     @default(unverified)
+  deals           Deal[]        @relation("SellerProfileDeals")
+  reputationEvents ReputationEvent[]
+
+  @@index([verified])
+}
+
+model Deal {
+  id             String        @id
+  title          String
+  amountSatang   Int
+  currency       String        @default("THB")
+  sellerId       String
+  seller         User          @relation("SellerDeals", fields: [sellerId], references: [id])
+  buyerId        String? 
+  buyer          User?         @relation("BuyerDeals", fields: [buyerId], references: [id])
+  sellerProfileId String?
+  sellerProfile  SellerProfile? @relation("SellerProfileDeals", fields: [sellerProfileId], references: [id])
+  status         DealStatus    @default(PENDING)
+  paylinkToken   String        @unique
+  expiresAt      DateTime
+  trackingNumber String?
+  courier        String?
+  deliveredAt    DateTime?
+  autoReleaseAt  DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  payments       Payment[]
+  dispute        Dispute?
+  events         DealEvent[]
+
+  @@index([status])
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  dealId       String
+  deal         Deal          @relation(fields: [dealId], references: [id])
+  provider     String
+  providerRef  String
+  status       PaymentStatus @default(INIT)
+  paidAt       DateTime?
+  qrString     String?
+  expiresAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status])
+}
+
+model Dispute {
+  id             String         @id @default(uuid())
+  dealId         String         @unique
+  deal           Deal           @relation(fields: [dealId], references: [id])
+  openedById     String
+  openedBy       User           @relation("BuyerDisputes", fields: [openedById], references: [id])
+  reasonText     String
+  status         DisputeStatus  @default(OPEN)
+  resolutionNote String?
+  createdAt      DateTime       @default(now())
+  resolvedAt     DateTime?
+  evidence       Evidence[]
+
+  @@index([status])
+}
+
+model Evidence {
+  id          String        @id @default(uuid())
+  disputeId   String
+  dispute     Dispute       @relation(fields: [disputeId], references: [id])
+  uploadedById String
+  uploadedBy  User          @relation("EvidenceUploader", fields: [uploadedById], references: [id])
+  kind        EvidenceKind
+  url         String
+  note        String?
+  createdAt   DateTime      @default(now())
+}
+
+model ReputationEvent {
+  id        String        @id @default(uuid())
+  sellerId  String
+  seller    SellerProfile @relation(fields: [sellerId], references: [id])
+  type      ReputationType
+  weight    Float
+  note      String?
+  createdAt DateTime      @default(now())
+}
+
+model DealEvent {
+  id        String    @id @default(uuid())
+  dealId    String
+  deal      Deal      @relation(fields: [dealId], references: [id])
+  from      DealStatus?
+  to        DealStatus
+  context   String?
+  createdAt DateTime  @default(now())
+}
