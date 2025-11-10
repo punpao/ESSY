@@ -1,0 +1,21 @@
+{
+  "name": "@thai-escrow/payment",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@thai-escrow/core": "workspace:*",
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}
