@@ -1,0 +1,28 @@
+{
+  "name": "thai-social-commerce-escrow",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write .",
+    "db:migrate": "pnpm --filter api exec prisma migrate deploy --schema ../../infra/prisma/schema.prisma",
+    "db:migrate:dev": "pnpm --filter api exec prisma migrate dev --schema ../../infra/prisma/schema.prisma",
+    "db:seed": "pnpm --filter api db:seed"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "turbo": "^1.12.5",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
