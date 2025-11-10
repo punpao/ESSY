@@ -1,0 +1,29 @@
+FROM node:18-alpine AS base
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.0
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/core/package.json ./packages/core/
+COPY packages/payment/package.json ./packages/payment/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source files
+COPY apps/api ./apps/api
+COPY packages ./packages
+
+# Generate Prisma Client
+RUN cd apps/api && pnpm prisma generate
+
+# Expose port
+EXPOSE 4000
+
+# Start command
+CMD ["pnpm", "--filter", "@thai-escrow/api", "dev"]

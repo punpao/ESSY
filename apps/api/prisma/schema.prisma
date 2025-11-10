@@ -1,0 +1,292 @@
+// Prisma Schema for Thai Escrow Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================
+// USERS & AUTH
+// ============================
+
+enum UserRole {
+  buyer
+  seller
+  admin
+}
+
+enum KycLevel {
+  none
+  basic
+  full
+}
+
+model User {
+  id           String   @id @default(uuid())
+  role         UserRole @default(buyer)
+  
+  // Auth fields
+  line_sub     String?  @unique // LINE user ID
+  email        String?  @unique
+  phone        String?
+  
+  // Profile
+  display_name String
+  kyc_level    KycLevel @default(none)
+  
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  
+  // Relations
+  seller_profile SellerProfile?
+  deals_as_seller Deal[] @relation("SellerDeals")
+  deals_as_buyer  Deal[] @relation("BuyerDeals")
+  disputes        Dispute[] @relation("BuyerDisputes")
+  evidence        Evidence[]
+  
+  @@index([email])
+  @@index([line_sub])
+}
+
+// ============================
+// SELLER & KYC
+// ============================
+
+enum KycStatus {
+  unverified
+  pending
+  verified
+}
+
+model SellerProfile {
+  id               String    @id @default(uuid())
+  user_id          String    @unique
+  user             User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  verified         Boolean   @default(false)
+  kyc_status       KycStatus @default(unverified)
+  
+  // PromptPay details
+  promptpay_id     String?
+  promptpay_name   String?
+  
+  // Reputation
+  reputation_score Float     @default(0)
+  
+  // KYC documents (mock URLs)
+  selfie_url       String?
+  
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  
+  // Relations
+  reputation_events ReputationEvent[]
+  
+  @@index([verified])
+  @@index([kyc_status])
+}
+
+// ============================
+// DEALS & ESCROW
+// ============================
+
+enum DealStatus {
+  PENDING
+  HOLD
+  SHIPPED
+  RELEASED
+  DISPUTE
+  REFUND
+}
+
+model Deal {
+  id              String     @id @default(cuid())
+  
+  // Deal info
+  title           String
+  amount_satang   Int
+  currency        String     @default("THB")
+  
+  // Parties
+  seller_id       String
+  seller          User       @relation("SellerDeals", fields: [seller_id], references: [id])
+  buyer_id        String?
+  buyer           User?      @relation("BuyerDeals", fields: [buyer_id], references: [id])
+  
+  // Status & Escrow
+  status          DealStatus @default(PENDING)
+  
+  // Paylink
+  paylink_token   String     @unique @default(cuid())
+  expires_at      DateTime?
+  
+  // Shipping
+  tracking_number String?
+  courier         String?
+  delivered_at    DateTime?
+  auto_release_at DateTime?
+  
+  // Metadata
+  buyer_note      String?
+  
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  
+  // Relations
+  payments        Payment[]
+  disputes        Dispute[]
+  events          DealEvent[]
+  
+  @@index([status])
+  @@index([seller_id])
+  @@index([buyer_id])
+  @@index([paylink_token])
+  @@index([auto_release_at])
+}
+
+// ============================
+// PAYMENTS
+// ============================
+
+enum PaymentStatus {
+  INIT
+  PAID
+  REFUNDED
+  FAILED
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  deal_id      String
+  deal         Deal          @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+  
+  provider     String        @default("mock_promptpay")
+  provider_ref String        @unique
+  status       PaymentStatus @default(INIT)
+  
+  amount_satang Int
+  
+  paid_at      DateTime?
+  refunded_at  DateTime?
+  
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  
+  @@index([deal_id])
+  @@index([status])
+  @@index([provider_ref])
+}
+
+// ============================
+// DISPUTES
+// ============================
+
+enum DisputeStatus {
+  OPEN
+  NEED_MORE_INFO
+  RESOLVED_REFUND
+  RESOLVED_RELEASE
+}
+
+model Dispute {
+  id              String        @id @default(uuid())
+  deal_id         String
+  deal            Deal          @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+  
+  opened_by       String
+  buyer           User          @relation("BuyerDisputes", fields: [opened_by], references: [id])
+  
+  reason          String        // "not_delivered" | "item_mismatch" | "other"
+  reason_text     String
+  
+  status          DisputeStatus @default(OPEN)
+  resolution_note String?
+  
+  created_at      DateTime      @default(now())
+  resolved_at     DateTime?
+  updated_at      DateTime      @updatedAt
+  
+  // Relations
+  evidence        Evidence[]
+  
+  @@index([deal_id])
+  @@index([status])
+  @@index([created_at])
+}
+
+// ============================
+// EVIDENCE
+// ============================
+
+enum EvidenceKind {
+  image
+  chatlog
+  other
+}
+
+model Evidence {
+  id          String       @id @default(uuid())
+  dispute_id  String
+  dispute     Dispute      @relation(fields: [dispute_id], references: [id], onDelete: Cascade)
+  
+  uploaded_by String
+  user        User         @relation(fields: [uploaded_by], references: [id])
+  
+  kind        EvidenceKind
+  url         String
+  note        String?
+  
+  created_at  DateTime     @default(now())
+  
+  @@index([dispute_id])
+}
+
+// ============================
+// REPUTATION
+// ============================
+
+enum ReputationEventType {
+  positive
+  neutral
+  negative
+}
+
+model ReputationEvent {
+  id         String              @id @default(uuid())
+  seller_id  String
+  seller     SellerProfile       @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  
+  type       ReputationEventType
+  weight     Float               @default(1.0)
+  note       String?
+  
+  created_at DateTime            @default(now())
+  
+  @@index([seller_id])
+}
+
+// ============================
+// AUDIT TRAIL
+// ============================
+
+model DealEvent {
+  id         String   @id @default(uuid())
+  deal_id    String
+  deal       Deal     @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+  
+  event_type String   // "created" | "paid" | "shipped" | "released" | "disputed" | "refunded"
+  from_status String?
+  to_status   String?
+  
+  actor_id   String?  // User who triggered the event
+  metadata   String?  @db.Text // JSON string
+  
+  created_at DateTime @default(now())
+  
+  @@index([deal_id])
+  @@index([created_at])
+}
