@@ -1,0 +1,141 @@
+# Complete List of Generated Files
+
+## Root Configuration Files
+./package.json
+./pnpm-workspace.yaml
+./turbo.json
+./tsconfig.base.json
+./.prettierrc.json
+./.gitignore
+./.dockerignore
+./.env.example
+./.env.development
+./.env
+./docker-compose.yml
+
+## Documentation
+./README.md
+./SETUP.md
+./SUMMARY.md
+./PROJECT_STRUCTURE.md
+./FILES_GENERATED.txt
+
+## Apps - API (Backend)
+./apps/api/package.json
+./apps/api/tsconfig.json
+./apps/api/Dockerfile
+./apps/api/src/index.ts
+./apps/api/src/worker.ts
+./apps/api/src/lib/db.ts
+./apps/api/src/lib/auth.ts
+./apps/api/src/routes/auth.ts
+./apps/api/src/routes/seller.ts
+./apps/api/src/routes/deals.ts
+./apps/api/src/routes/payments.ts
+./apps/api/src/routes/disputes.ts
+./apps/api/src/routes/admin.ts
+
+## Apps - API Prisma
+./apps/api/prisma/schema.prisma
+./apps/api/prisma/seed.ts
+./apps/api/prisma/migrations/20240101000000_init/migration.sql
+./apps/api/prisma/migrations/migration_lock.toml
+
+## Apps - Web (Frontend)
+./apps/web/package.json
+./apps/web/tsconfig.json
+./apps/web/next.config.js
+./apps/web/tailwind.config.ts
+./apps/web/postcss.config.js
+./apps/web/Dockerfile
+
+## Apps - Web Source
+./apps/web/src/app/layout.tsx
+./apps/web/src/app/page.tsx
+./apps/web/src/app/globals.css
+./apps/web/src/app/auth/login/page.tsx
+./apps/web/src/app/pay/[token]/page.tsx
+
+## Apps - Web Components
+./apps/web/src/components/ui/button.tsx
+./apps/web/src/components/ui/card.tsx
+./apps/web/src/components/ui/badge.tsx
+./apps/web/src/components/ui/input.tsx
+./apps/web/src/components/ui/label.tsx
+./apps/web/src/components/ui/toast.tsx
+./apps/web/src/components/ui/toaster.tsx
+
+## Apps - Web Lib & Hooks
+./apps/web/src/lib/utils.ts
+./apps/web/src/hooks/use-toast.ts
+
+## Packages - Core
+./packages/core/package.json
+./packages/core/tsconfig.json
+./packages/core/vitest.config.ts
+./packages/core/src/index.ts
+./packages/core/src/types.ts
+./packages/core/src/state/escrowMachine.ts
+./packages/core/src/state/escrowMachine.test.ts
+./packages/core/src/utils/reputation.ts
+
+## Packages - Payment
+./packages/payment/package.json
+./packages/payment/tsconfig.json
+./packages/payment/src/index.ts
+./packages/payment/src/types.ts
+./packages/payment/src/providers/mock-promptpay.ts
+
+---
+
+## File Count by Type
+
+TypeScript Files: 35
+- .ts files: 17
+- .tsx files: 11
+- Test files: 1
+
+Configuration Files: 16
+- package.json: 4
+- tsconfig.json: 4
+- Docker/Compose: 3
+- Other configs: 5
+
+Database Files: 3
+- schema.prisma: 1
+- migrations: 2
+
+Documentation: 5
+- README.md + guides
+
+Total Key Files: 59
+
+---
+
+## Key Entry Points
+
+Backend:
+  - Main: apps/api/src/index.ts
+  - Worker: apps/api/src/worker.ts
+  - DB Client: apps/api/src/lib/db.ts
+
+Frontend:
+  - Main: apps/web/src/app/layout.tsx
+  - Home: apps/web/src/app/page.tsx
+
+State Machine:
+  - Logic: packages/core/src/state/escrowMachine.ts
+  - Tests: packages/core/src/state/escrowMachine.test.ts
+
+Payment:
+  - Interface: packages/payment/src/types.ts
+  - Mock Provider: packages/payment/src/providers/mock-promptpay.ts
+
+Database:
+  - Schema: apps/api/prisma/schema.prisma
+  - Seed: apps/api/prisma/seed.ts
+
+---
+
+Generated: 2024
+Platform: SafePay Thailand - Social Commerce Escrow MVP

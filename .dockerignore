@@ -1,0 +1,14 @@
+node_modules
+.next
+dist
+build
+.turbo
+.git
+.env
+.env.local
+README.md
+.gitignore
+*.log
+coverage
+.vscode
+.idea

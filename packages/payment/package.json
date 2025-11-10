@@ -1,0 +1,23 @@
+{
+  "name": "@escrow/payment",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@escrow/core": "workspace:*",
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  }
+}

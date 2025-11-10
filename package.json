@@ -1,0 +1,30 @@
+{
+  "name": "thai-escrow-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Thailand Social-Commerce Escrow Platform MVP",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "db:migrate": "pnpm --filter @escrow/api db:migrate",
+    "db:seed": "pnpm --filter @escrow/api db:seed",
+    "db:studio": "pnpm --filter @escrow/api db:studio",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.11.2",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.12.1",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
