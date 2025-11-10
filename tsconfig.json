@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "lib": ["ES2021", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "types": ["node"],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "baseUrl": ".",
+      "paths": {
+        "@thai-escrow/core/*": ["packages/core/src/*"],
+        "@thai-escrow/ui/*": ["packages/ui/src/*"],
+        "@thai-escrow/payment/*": ["packages/payment/src/*"]
+      }
+  },
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/ui" },
+    { "path": "packages/payment" },
+    { "path": "apps/api" },
+    { "path": "apps/web" }
+  ]
+}

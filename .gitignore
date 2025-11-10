@@ -1,0 +1,16 @@
+node_modules
+.pnpm-store
+/dist
+/.next
+/apps/**/.next
+/apps/**/dist
+/apps/**/build
+coverage
+.env
+.env.local
+pnpm-lock.yaml
+playwright-report
+storage
+.DS_Store
+.idea
+.vscode
