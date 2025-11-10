@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  buyer
+  seller
+  admin
+}
+
+enum KycLevel {
+  none
+  basic
+  full
+}
+
+enum KycStatus {
+  unverified
+  pending
+  verified
+}
+
+enum DealStatus {
+  PENDING
+  HOLD
+  SHIPPED
+  RELEASED
+  DISPUTE
+  REFUND
+}
+
+enum PaymentProvider {
+  mock_promptpay
+}
+
+enum PaymentStatus {
+  INIT
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum DisputeStatus {
+  OPEN
+  NEED_MORE_INFO
+  RESOLVED_REFUND
+  RESOLVED_RELEASE
+}
+
+enum EvidenceKind {
+  image
+  chatlog
+  other
+}
+
+enum ReputationEventType {
+  positive
+  neutral
+  negative
+}
+
+model User {
+  id          String     @id @default(uuid())
+  role        UserRole
+  lineSub     String?    @unique
+  email       String?    @unique
+  phone       String?
+  kycLevel    KycLevel   @default(none)
+  displayName String
+  createdAt   DateTime   @default(now())
+
+  sellerProfile  SellerProfile?
+  dealsAsSeller  Deal[]         @relation("SellerDeals")
+  dealsAsBuyer   Deal[]         @relation("BuyerDeals")
+  disputesOpened Dispute[]      @relation("DisputeOpened")
+  evidences      Evidence[]     @relation("EvidenceUploaded")
+  events         DealEvent[]    @relation("DealActor")
+}
+
+model SellerProfile {
+  id             String      @id @default(uuid())
+  userId         String      @unique
+  verified       Boolean     @default(false)
+  promptPayId    String
+  promptPayName  String
+  reputationScore Float      @default(0)
+  kycStatus      KycStatus   @default(unverified)
+  kycSelfieUrl   String?
+  kycSubmittedAt DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id])
+  reputationEvent ReputationEvent[]
+
+  @@index([verified])
+}
+
+model Deal {
+  id             String      @id @default(ulid())
+  title          String
+  amountSatang   Int
+  currency       String      @default("THB")
+  sellerId       String
+  buyerId        String?
+  status         DealStatus  @default(PENDING)
+  paylinkToken   String      @unique
+  expiresAt      DateTime
+  trackingNumber String?
+  courier        String?
+  deliveredAt    DateTime?
+  autoReleaseAt  DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  seller   User    @relation("SellerDeals", fields: [sellerId], references: [id])
+  buyer    User?   @relation("BuyerDeals", fields: [buyerId], references: [id])
+  payment  Payment?
+  dispute  Dispute?
+  events   DealEvent[]
+
+  @@index([status])
+  @@index([autoReleaseAt])
+}
+
+model Payment {
+  id          String         @id @default(uuid())
+  dealId      String         @unique
+  provider    PaymentProvider
+  providerRef String         @unique
+  status      PaymentStatus  @default(INIT)
+  paidAt      DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id])
+
+  @@index([status])
+}
+
+model Dispute {
+  id           String        @id @default(uuid())
+  dealId       String        @unique
+  openedById   String
+  reasonText   String
+  status       DisputeStatus @default(OPEN)
+  resolutionNote String?
+  createdAt    DateTime      @default(now())
+  resolvedAt   DateTime?
+
+  deal      Deal   @relation(fields: [dealId], references: [id])
+  openedBy  User   @relation("DisputeOpened", fields: [openedById], references: [id])
+  evidence  Evidence[]
+
+  @@index([status])
+}
+
+model Evidence {
+  id          String       @id @default(uuid())
+  disputeId   String
+  uploadedById String
+  kind        EvidenceKind
+  url         String
+  note        String?
+  createdAt   DateTime     @default(now())
+
+  dispute   Dispute @relation(fields: [disputeId], references: [id])
+  uploadedBy User   @relation("EvidenceUploaded", fields: [uploadedById], references: [id])
+}
+
+model ReputationEvent {
+  id        String              @id @default(uuid())
+  sellerId  String
+  type      ReputationEventType
+  weight    Float
+  note      String?
+  createdAt DateTime            @default(now())
+
+  seller SellerProfile @relation(fields: [sellerId], references: [id])
+}
+
+model DealEvent {
+  id        String   @id @default(uuid())
+  dealId    String
+  actorId   String?
+  type      String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  deal  Deal @relation(fields: [dealId], references: [id])
+  actor User? @relation("DealActor", fields: [actorId], references: [id])
+
+  @@index([dealId, createdAt])
+}
+
+model EmailOtp {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  consumed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, code])
+}

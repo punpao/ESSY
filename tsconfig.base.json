@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@escrow/core/*": ["packages/core/src/*"],
+      "@escrow/payment/*": ["packages/payment/src/*"],
+      "@escrow/ui/*": ["packages/ui/src/*"]
+    },
+    "types": ["vitest/globals"]
+  }
+}
