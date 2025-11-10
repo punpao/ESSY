@@ -1,0 +1,15 @@
+export const config = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: parseInt(process.env.PORT || '3001', 10),
+  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/escrow',
+  REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
+  JWT_SECRET: process.env.JWT_SECRET || 'change_me',
+  LINE_CHANNEL_ID: process.env.LINE_CHANNEL_ID || 'demo',
+  LINE_CHANNEL_SECRET: process.env.LINE_CHANNEL_SECRET || 'demo',
+  LINE_REDIRECT_URI: process.env.LINE_REDIRECT_URI || 'http://localhost:3000/api/auth/line/callback',
+  APP_BASE_URL: process.env.APP_BASE_URL || 'http://localhost:3000',
+  API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:3001',
+  PAYMENT_WEBHOOK_SECRET: process.env.PAYMENT_WEBHOOK_SECRET || 'mock_secret',
+  AUTO_RELEASE_HOURS: parseInt(process.env.AUTO_RELEASE_HOURS || '48', 10),
+  S3_BUCKET_URL: process.env.S3_BUCKET_URL || 'https://mock-s3.example.com/uploads',
+};

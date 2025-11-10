@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  buyer
+  seller
+  admin
+}
+
+enum KYCLevel {
+  none
+  basic
+  full
+}
+
+enum KYCStatus {
+  unverified
+  pending
+  verified
+}
+
+enum DealStatus {
+  PENDING
+  HOLD
+  SHIPPED
+  RELEASED
+  DISPUTE
+  REFUND
+}
+
+enum PaymentStatus {
+  INIT
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum DisputeStatus {
+  OPEN
+  NEED_MORE_INFO
+  RESOLVED_REFUND
+  RESOLVED_RELEASE
+}
+
+enum ReputationEventType {
+  positive
+  neutral
+  negative
+}
+
+enum EvidenceKind {
+  image
+  chatlog
+  other
+}
+
+model User {
+  id          String   @id @default(uuid())
+  role        UserRole @default(buyer)
+  lineSub     String?  @unique
+  email       String?  @unique
+  phone       String?
+  kycLevel    KYCLevel @default(none)
+  displayName String
+  createdAt   DateTime @default(now())
+
+  sellerProfile SellerProfile?
+  dealsAsSeller Deal[]        @relation("SellerDeals")
+  dealsAsBuyer  Deal[]        @relation("BuyerDeals")
+  disputes      Dispute[]
+  evidence      Evidence[]
+  reputationEvents ReputationEvent[]
+
+  @@index([email])
+  @@index([lineSub])
+  @@map("users")
+}
+
+model SellerProfile {
+  id             String     @id @default(uuid())
+  userId         String     @unique
+  verified       Boolean    @default(false)
+  promptpayId    String?
+  promptpayName  String?
+  reputationScore Float     @default(0)
+  kycStatus      KYCStatus @default(unverified)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deals Deal[]
+  reputationEvents ReputationEvent[]
+
+  @@index([verified])
+  @@index([kycStatus])
+  @@map("seller_profiles")
+}
+
+model Deal {
+  id            String     @id @default(ulid())
+  title         String
+  amountSatang  Int
+  currency      String     @default("THB")
+  sellerId      String
+  buyerId       String?
+  status        DealStatus @default(PENDING)
+  paylinkToken  String     @unique
+  expiresAt     DateTime?
+  trackingNumber String?
+  courier       String?
+  deliveredAt   DateTime?
+  autoReleaseAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  seller  User     @relation("SellerDeals", fields: [sellerId], references: [id])
+  buyer   User?    @relation("BuyerDeals", fields: [buyerId], references: [id])
+  payment Payment?
+  dispute Dispute?
+  events  DealEvent[]
+
+  @@index([status])
+  @@index([sellerId])
+  @@index([buyerId])
+  @@index([paylinkToken])
+  @@map("deals")
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  dealId      String        @unique
+  provider    String        @default("mock_promptpay")
+  providerRef String        @unique
+  status      PaymentStatus @default(INIT)
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([providerRef])
+  @@map("payments")
+}
+
+model Dispute {
+  id            String        @id @default(uuid())
+  dealId        String        @unique
+  openedBy      String
+  reasonText    String
+  status        DisputeStatus @default(OPEN)
+  resolutionNote String?
+  createdAt     DateTime      @default(now())
+  resolvedAt    DateTime?
+  updatedAt     DateTime      @updatedAt
+
+  deal     Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  opener   User      @relation(fields: [openedBy], references: [id])
+  evidence Evidence[]
+
+  @@index([status])
+  @@index([dealId])
+  @@map("disputes")
+}
+
+model Evidence {
+  id         String       @id @default(uuid())
+  disputeId  String
+  uploadedBy String
+  kind       EvidenceKind
+  url        String
+  note       String?
+  createdAt  DateTime     @default(now())
+
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  uploader User   @relation(fields: [uploadedBy], references: [id])
+
+  @@index([disputeId])
+  @@map("evidence")
+}
+
+model ReputationEvent {
+  id         String              @id @default(uuid())
+  sellerId   String
+  type       ReputationEventType
+  weight     Float
+  note       String?
+  createdAt  DateTime            @default(now())
+
+  seller SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId])
+  @@map("reputation_events")
+}
+
+model DealEvent {
+  id        String   @id @default(uuid())
+  dealId    String
+  fromStatus DealStatus?
+  toStatus  DealStatus
+  reason    String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+  @@index([createdAt])
+  @@map("deal_events")
+}
