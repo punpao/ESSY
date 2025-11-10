@@ -1,0 +1,20 @@
+{
+  "name": "thai-social-escrow",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "turbo dev --parallel",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "test:e2e": "turbo test:e2e",
+    "db:migrate": "pnpm --filter api prisma migrate deploy",
+    "db:seed": "pnpm --filter api prisma db seed",
+    "format": "pnpm prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.3.2",
+    "turbo": "^2.0.0"
+  }
+}
