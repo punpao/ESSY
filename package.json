@@ -1,0 +1,29 @@
+{
+  "name": "thai-escrow-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Thailand-focused Social-Commerce Escrow MVP",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:migrate": "cd apps/api && pnpm prisma migrate dev",
+    "db:seed": "cd apps/api && pnpm prisma db seed",
+    "db:studio": "cd apps/api && pnpm prisma studio",
+    "db:push": "cd apps/api && pnpm prisma db push",
+    "db:generate": "cd apps/api && pnpm prisma generate"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.11.0",
+    "prettier": "^3.1.0",
+    "turbo": "^1.11.0"
+  },
+  "packageManager": "pnpm@8.10.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
