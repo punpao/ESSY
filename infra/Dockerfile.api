@@ -1,0 +1,33 @@
+FROM node:18-alpine AS base
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.0
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY packages/core/package.json ./packages/core/
+COPY packages/payment/package.json ./packages/payment/
+COPY apps/api/package.json ./apps/api/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source
+COPY . .
+
+# Build packages
+RUN pnpm --filter @essy/core build
+RUN pnpm --filter @essy/payment build
+
+# Generate Prisma client
+WORKDIR /app/apps/api
+RUN pnpm prisma generate
+
+# Build API
+RUN pnpm build
+
+EXPOSE 3001
+
+CMD ["pnpm", "--filter", "@essy/api", "start"]
