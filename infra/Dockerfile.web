@@ -1,0 +1,32 @@
+FROM node:18-alpine AS base
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.0
+
+# Copy workspace files
+COPY package.json pnpm-workspace.yaml turbo.json ./
+COPY packages/core/package.json ./packages/core/
+COPY apps/web/package.json ./apps/web/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source
+COPY packages/core ./packages/core
+COPY apps/web ./apps/web
+
+# Build packages
+RUN pnpm --filter @essy/core build
+
+# Development
+FROM base AS development
+WORKDIR /app/apps/web
+CMD ["pnpm", "dev"]
+
+# Production
+FROM base AS production
+WORKDIR /app/apps/web
+RUN pnpm build
+CMD ["pnpm", "start"]
